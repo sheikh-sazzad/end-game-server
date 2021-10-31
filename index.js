@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jg5bl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.45msy.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 
@@ -24,12 +24,12 @@ async function run() {
 
     try {
         await client.connect();
-        const database = client.db('FoobDelivery');
-        const deliveryCollection = database.collection('deliveryItems');
-        const orderCollection = database.collection('AllOrder');
+        const database = client.db('TourBook');
+        const deliveryCollection = database.collection('tourItems');
+        const orderCollection = database.collection('AllBook');
 
         //get product api
-        app.get('/deliveryItems', async (req, res) => {
+        app.get('/services', async (req, res) => {
             const cursor = deliveryCollection.find({});
             const deliveryItems = await cursor.toArray();
             res.send(deliveryItems);
@@ -37,12 +37,12 @@ async function run() {
 
 
         //POST api
-        app.post('/deliveryItems', async (req, res) => {
+        app.post('/services', async (req, res) => {
             const deliveryItem = req.body;
-            // console.log('hit the post api', deliveryItem);
+            console.log('hit the post api', deliveryItem);
 
             const result = await deliveryCollection.insertOne(deliveryItem);
-            // console.log(result);
+            console.log(result);
             res.json(result);
         })
 
@@ -61,6 +61,7 @@ async function run() {
         app.get('/AllOrder', async (req, res) => {
             const cursor = orderCollection.find({});
             const AllOrder = await cursor.toArray();
+            console.log('hi')
             res.send(AllOrder);
         })
 
@@ -78,20 +79,20 @@ async function run() {
 
         //Update API 
 
-        app.put('/AllOrder/:id', async (req, res) => {
-            const id = req.params.id;
-            const updatedStatus = req.body;
-            const filter = { _id: ObjectId(id) };
-            const options = { upsert: true };
-            const updateDoc = {
-                $set: {
-                    status: updatedStatus.status
-                },
-            };
-            const result = await orderCollection.updateOne(filter, updateDoc, options);
-            // console.log(`your id nong`, id, updatedStatus);
-            res.send(result)
-        })
+        // app.put('/AllOrder/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const updatedStatus = req.body;
+        //     const filter = { _id: ObjectId(id) };
+        //     const options = { upsert: true };
+        //     const updateDoc = {
+        //         $set: {
+        //             status: updatedStatus.status
+        //         },
+        //     };
+        //     const result = await orderCollection.updateOne(filter, updateDoc, options);
+        //     // console.log(`your id nong`, id, updatedStatus);
+        //     res.send(result)
+        // })
 
 
 
@@ -110,7 +111,7 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('Khuda Lagche Server Is Running');
+    res.send('Our Tour Server is Running');
 });
 
 app.listen(port, () => {
