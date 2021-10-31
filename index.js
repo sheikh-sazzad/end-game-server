@@ -1,58 +1,118 @@
-const express = require ('express');
+const express = require('express');
 const { MongoClient } = require('mongodb');
-require('dotenv').config()
+const cors = require('cors');
+const ObjectId = require('mongodb').ObjectId;
+
 
 
 const app = express();
 const port = process.env.PORT || 5000;
-
-// user: TourWithJorj
-// pass: foAygaHWSih4goPb
-
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.45msy.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+require('dotenv').config();
 
 
+//middleware
+app.use(cors());
+app.use(express.json());
+
+
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jg5bl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-async function run(){
-    try{
+
+
+async function run() {
+
+    try {
         await client.connect();
-        const database = client.db('tourPlan');
-        const servicesCollection = database.collection('services');
+        const database = client.db('FoobDelivery');
+        const deliveryCollection = database.collection('deliveryItems');
+        const orderCollection = database.collection('AllOrder');
 
-        // Post APi
-         app.post('/services',async(req,res)=>{
-            const service = {
-                "name":"Coxs Bazar",
-        "price":10000,
-        "location":"Chittagong",
-        "duration":"3 days",
-        "description":"It is famous mostly for its long natural sandy beach. It is located 150 km (93 mi) south of the city of Chittagong. Cox's Bazar is also known by the name Panowa ...",
-        "img":"https://i.ibb.co/D9kSYPN/place-4.jpg"
-            }
+        //get product api
+        app.get('/deliveryItems', async (req, res) => {
+            const cursor = deliveryCollection.find({});
+            const deliveryItems = await cursor.toArray();
+            res.send(deliveryItems);
+        })
 
-            const result = await servicesCollection.insertOne(service);
-            console.log(result);
-         });
+
+        //POST api
+        app.post('/deliveryItems', async (req, res) => {
+            const deliveryItem = req.body;
+            // console.log('hit the post api', deliveryItem);
+
+            const result = await deliveryCollection.insertOne(deliveryItem);
+            // console.log(result);
+            res.json(result);
+        })
+
+        // POST All order api
+        app.post('/AllOrder', async (req, res) => {
+            const OrderList = req.body;
+            // console.log('order hit the server', OrderList);
+
+
+            const result = await orderCollection.insertOne(OrderList);
+            // // console.log(result);
+            res.json(result);
+        })
+
+        //Get All Order api
+        app.get('/AllOrder', async (req, res) => {
+            const cursor = orderCollection.find({});
+            const AllOrder = await cursor.toArray();
+            res.send(AllOrder);
+        })
+
+
+        //Delete api
+        app.delete('/AllOrder/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await orderCollection.deleteOne(query);
+            // console.log('deleting user with id', result)
+            res.json(result);
+        })
+
+
+
+        //Update API 
+
+        app.put('/AllOrder/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedStatus = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    status: updatedStatus.status
+                },
+            };
+            const result = await orderCollection.updateOne(filter, updateDoc, options);
+            // console.log(`your id nong`, id, updatedStatus);
+            res.send(result)
+        })
+
+
+
 
     }
-    finally{
+    finally {
         // await client.close();
     }
 }
 
 run().catch(console.dir);
 
-// client.connect(err => {
-//   const collection = client.db("test").collection("devices");
-//   // perform actions on the collection object
-//   client.close();
-// });
 
-app.get('/',(req,res) =>{
-    res.send('Tour plan is runnig');
+
+
+
+
+app.get('/', (req, res) => {
+    res.send('Khuda Lagche Server Is Running');
 });
 
-app.listen(port, ()=>{
-    console.log('Listening to port',port);
+app.listen(port, () => {
+    console.log('Server Running At Port', port);
 });
