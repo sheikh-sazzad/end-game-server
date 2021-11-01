@@ -66,7 +66,7 @@ async function run() {
         })
 
 
-        //Delete api
+        //Delete api...
         app.delete('/AllOrder/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
